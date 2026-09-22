@@ -9,12 +9,13 @@ You can also include images in this folder and reference them in the markdown. E
 
 ## How it works
 
-Explain how your project works
+This is an SPI-controlled PWM peripheral, operating at 10MHz with SPI communication at around 100KHz.
+It includes an SPI Peripheral module, as well as a PWM Peripheral module.
 
 ## How to test
 
-Explain how to use your project
+Work in progress.
 
 ## External hardware
 
-List external hardware used in your project (e.g. PMOD, LED display, etc), if any
+None so far.
