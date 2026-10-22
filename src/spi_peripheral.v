@@ -65,7 +65,6 @@ module spi_peripheral #(
             SCLK_sync2 <= SCLK_sync1;
             SCLK_sync3 <= SCLK_sync2;
         end
-
     end
 
     //Capture logic, process SPI protocol in the clk domain
@@ -85,9 +84,7 @@ module spi_peripheral #(
             if (SCLK_posedge) begin
                 SCLK_counter <= SCLK_counter + 1'b1;
                 shift_reg <= {shift_reg[14:0], COPI_sync2};
-
             end
-
 
         end else begin
             // nCS goes high, end of transaction, validate ready
@@ -98,7 +95,6 @@ module spi_peripheral #(
                 transaction_ready <= 1'b0;
             end
         end
-
     end
 
     //Register updates when transaction_ready (end of nCS = 0 period)
@@ -122,6 +118,7 @@ module spi_peripheral #(
                     7'h02 : en_reg_pwm_7_0  <= shift_reg[7:0];
                     7'h03 : en_reg_pwm_15_8 <= shift_reg[7:0];
                     7'h04 : pwm_duty_cycle  <= shift_reg[7:0];
+                    default : ;
                 endcase
             end
             transaction_processed <= 1'b1;
