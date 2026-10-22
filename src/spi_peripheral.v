@@ -1,7 +1,7 @@
 `default_nettype none
 
 module spi_peripheral #(
-    parameter max_address = 1h'4
+    parameter max_address = 7'h04
 ) (
     input wire clk,
     input wire rst_n,
@@ -41,7 +41,7 @@ module spi_peripheral #(
     assign nCS_negedge = !nCS_sync2 && nCS_sync3;
     assign SCLK_posedge = SCLK_sync2 && !SCLK_sync3;
 
-    //Synchronizers block
+    //CDC Synchronizers
     always @(posedge clk or negedge rst_n) begin
         if (!rst_n) begin
             COPI_sync1 <= 1'b0;
@@ -71,10 +71,22 @@ module spi_peripheral #(
     //Capture logic, process SPI protocol in the clk domain
     always @(posedge clk or negedge rst_n) begin
         if (!rst_n) begin
+            SCLK_counter <= 8'b00000000;
+            shift_reg <= 16'h0000;
             transaction_ready <= 1'b0;
-        end else if (nCS_sync2 == 1'b0) begin
 
-            // during transaction, processing
+        end else if (nCS_sync2 == 1'b0) begin
+            // during transaction
+            if (nCS_negedge) begin
+                //reset counter and shift reg at beginning of transaction
+                SCLK_counter <= 8'b00000000;
+                shift_reg <= 16'h0000;
+            end
+            if (SCLK_posedge) begin
+                SCLK_counter <= SCLK_counter + 1'b1;
+                shift_reg <= {shift_reg[14:0], COPI_sync2};
+
+            end
 
 
         end else begin
@@ -85,8 +97,6 @@ module spi_peripheral #(
                 //Reset transaction_ready after transaction processed
                 transaction_ready <= 1'b0;
             end
-
-
         end
 
     end
@@ -102,9 +112,18 @@ module spi_peripheral #(
             transaction_processed <= 1'b0;
         end else if (transaction_ready && !transaction_processed) begin
             //Transaction is ready and not yet processed
-
-            // process transaction
-
+            // validate transaction
+            if (SCLK_counter == 16 && shift_reg[15] == 1'b1 && shift_reg[14:8] <= max_address) begin
+                //16 bits read        write operation                 address in range
+                // process transaction
+                case (shift_reg[14:8])
+                    7'h00 : en_reg_out_7_0  <= shift_reg[7:0];
+                    7'h01 : en_reg_out_15_8 <= shift_reg[7:0];
+                    7'h02 : en_reg_pwm_7_0  <= shift_reg[7:0];
+                    7'h03 : en_reg_pwm_15_8 <= shift_reg[7:0];
+                    7'h04 : pwm_duty_cycle  <= shift_reg[7:0];
+                endcase
+            end
             transaction_processed <= 1'b1;
         end else if (!transaction_ready && transaction_processed) begin
             //Reset transaction_processed when no longer ready
