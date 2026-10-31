@@ -94,15 +94,15 @@ module spi_peripheral (
         end else if (transaction_ready) begin
             //Transaction is ready and not yet processed
             // validate transaction
-            if (SCLK_counter == 16 && shift_reg[15] == 1'b1 && shift_reg[10:8] <= 3'h4) begin
+            if (SCLK_counter == 16 && shift_reg[15] == 1'b1 && shift_reg[14:8] <= 7'h4) begin
                 //16 bits read        write operation                 address in range
                 // process transaction
-                case (shift_reg[14:8])
-                    7'h00 : en_reg_out_7_0  <= shift_reg[7:0];
-                    7'h01 : en_reg_out_15_8 <= shift_reg[7:0];
-                    7'h02 : en_reg_pwm_7_0  <= shift_reg[7:0];
-                    7'h03 : en_reg_pwm_15_8 <= shift_reg[7:0];
-                    7'h04 : pwm_duty_cycle  <= shift_reg[7:0];
+                case (shift_reg[10:8])
+                    3'h0 : en_reg_out_7_0  <= shift_reg[7:0];
+                    3'h1 : en_reg_out_15_8 <= shift_reg[7:0];
+                    3'h2 : en_reg_pwm_7_0  <= shift_reg[7:0];
+                    3'h3 : en_reg_pwm_15_8 <= shift_reg[7:0];
+                    3'h4 : pwm_duty_cycle  <= shift_reg[7:0];
                     default : ;
                 endcase
             end
