@@ -1,8 +1,6 @@
 `default_nettype none
 
-module spi_peripheral #(
-    parameter max_address = 7'h04
-) (
+module spi_peripheral (
     input wire clk,
     input wire rst_n,
     input wire COPI,
@@ -109,7 +107,7 @@ module spi_peripheral #(
         end else if (transaction_ready && !transaction_processed) begin
             //Transaction is ready and not yet processed
             // validate transaction
-            if (SCLK_counter == 16 && shift_reg[15] == 1'b1 && shift_reg[14:8] <= max_address) begin
+            if (SCLK_counter == 16 && shift_reg[15] == 1'b1 && shift_reg[10:8] <= 3'h4) begin
                 //16 bits read        write operation                 address in range
                 // process transaction
                 case (shift_reg[14:8])
