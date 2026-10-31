@@ -27,7 +27,7 @@ module spi_peripheral #(
     reg SCLK_sync2;
     reg SCLK_sync3;
 
-    reg [7:0] SCLK_counter;
+    reg [4:0] SCLK_counter;
     reg [15:0] shift_reg;
 
     reg transaction_ready;
@@ -70,7 +70,7 @@ module spi_peripheral #(
     //Capture logic, process SPI protocol in the clk domain
     always @(posedge clk or negedge rst_n) begin
         if (!rst_n) begin
-            SCLK_counter <= 8'b00000000;
+            SCLK_counter <= 5'b00000;
             shift_reg <= 16'h0000;
             transaction_ready <= 1'b0;
 
@@ -78,7 +78,7 @@ module spi_peripheral #(
             // during transaction
             if (nCS_negedge) begin
                 //reset counter and shift reg at beginning of transaction
-                SCLK_counter <= 8'b00000000;
+                SCLK_counter <= 5'b00000;
                 shift_reg <= 16'h0000;
             end
             if (SCLK_posedge) begin
