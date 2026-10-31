@@ -32,11 +32,9 @@ module spi_peripheral (
     reg transaction_processed;
 
     wire nCS_posedge;
-    wire nCS_negedge;
     wire SCLK_posedge;
 
     assign nCS_posedge = nCS_sync2 && !nCS_sync3;
-    assign nCS_negedge = !nCS_sync2 && nCS_sync3;
     assign SCLK_posedge = SCLK_sync2 && !SCLK_sync3;
 
     //CDC Synchronizers
@@ -74,23 +72,21 @@ module spi_peripheral (
 
         end else if (nCS_sync2 == 1'b0) begin
             // during transaction
-            if (nCS_negedge) begin
-                //reset counter and shift reg at beginning of transaction
-                SCLK_counter <= 5'b00000;
-                shift_reg <= 16'h0000;
-            end
             if (SCLK_posedge) begin
                 SCLK_counter <= SCLK_counter + 1'b1;
                 shift_reg <= {shift_reg[14:0], COPI_sync2};
             end
 
         end else begin
-            // nCS goes high, end of transaction, validate ready
+            // nCS goes high, end of transaction, validate ready,
             if (nCS_posedge) begin
                 transaction_ready <= 1'b1;
-            end else if (transaction_processed) begin
-                //Reset transaction_ready after transaction processed
+                
+            end else begin
+                //Reset transaction_ready and reset after transaction processed
                 transaction_ready <= 1'b0;
+                SCLK_counter <= 5'b00000;
+                shift_reg <= 16'h0000;
             end
         end
     end
@@ -125,7 +121,5 @@ module spi_peripheral (
             transaction_processed <= 1'b0;
         end
     end
-
-    
 
 endmodule
