@@ -122,7 +122,7 @@ module spi_peripheral #(
                 endcase
             end
             transaction_processed <= 1'b1;
-        end else if (!transaction_ready && transaction_processed) begin
+        end else if (transaction_processed) begin
             //Reset transaction_processed when no longer ready
             transaction_processed <= 1'b0;
         end
