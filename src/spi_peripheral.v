@@ -19,7 +19,6 @@ module spi_peripheral (
     
     reg nCS_sync1;
     reg nCS_sync2;
-    reg nCS_sync3;
 
     reg SCLK_sync1;
     reg SCLK_sync2;
@@ -29,12 +28,8 @@ module spi_peripheral (
     reg [15:0] shift_reg;
 
     reg transaction_ready;
-    reg transaction_processed;
 
-    wire nCS_posedge;
     wire SCLK_posedge;
-
-    assign nCS_posedge = nCS_sync2 && !nCS_sync3;
     assign SCLK_posedge = SCLK_sync2 && !SCLK_sync3;
 
     //CDC Synchronizers
@@ -44,7 +39,6 @@ module spi_peripheral (
             COPI_sync2 <= 1'b0;
             nCS_sync1 <= 1'b1;
             nCS_sync2 <= 1'b1;
-            nCS_sync3 <= 1'b1;
             SCLK_sync1 <= 1'b0;
             SCLK_sync2 <= 1'b0;
             SCLK_sync3 <= 1'b0;
@@ -55,7 +49,6 @@ module spi_peripheral (
 
             nCS_sync1 <= nCS;
             nCS_sync2 <= nCS_sync1;
-            nCS_sync3 <= nCS_sync2;
 
             SCLK_sync1 <= SCLK;
             SCLK_sync2 <= SCLK_sync1;
@@ -79,9 +72,8 @@ module spi_peripheral (
 
         end else begin
             // nCS goes high, end of transaction, validate ready,
-            if (nCS_posedge) begin
+            if (transaction_ready == 0) begin
                 transaction_ready <= 1'b1;
-                
             end else begin
                 //Reset transaction_ready and reset after transaction processed
                 transaction_ready <= 1'b0;
@@ -99,8 +91,7 @@ module spi_peripheral (
             en_reg_pwm_7_0  <= 8'h00;
             en_reg_pwm_15_8 <= 8'h00;
             pwm_duty_cycle  <= 8'h00;
-            transaction_processed <= 1'b0;
-        end else if (transaction_ready && !transaction_processed) begin
+        end else if (transaction_ready) begin
             //Transaction is ready and not yet processed
             // validate transaction
             if (SCLK_counter == 16 && shift_reg[15] == 1'b1 && shift_reg[10:8] <= 3'h4) begin
@@ -115,11 +106,7 @@ module spi_peripheral (
                     default : ;
                 endcase
             end
-            transaction_processed <= 1'b1;
-        end else if (transaction_processed) begin
-            //Reset transaction_processed when no longer ready
-            transaction_processed <= 1'b0;
-        end
+        end 
     end
 
 endmodule
